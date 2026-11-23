@@ -1,0 +1,238 @@
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Chat</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #d9dbd5;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .chat-container {
+            width: 90%;
+            max-width: 850px;
+            height: 90vh;
+            background: #efeae2;
+            display: flex;
+            flex-direction: column;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.15);
+        }
+
+        .chat-header {
+            background: #6d0018;
+            color: white;
+            padding: 20px;
+        }
+
+        .chat-header h1 {
+            font-size: 21px;
+            font-weight: 600;
+        }
+
+        .chat-header p {
+            font-size: 13px;
+            margin-top: 5px;
+            color: #d6e8e4;
+        }
+
+        .mensagens {
+            flex: 1;
+            padding: 25px;
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow-y: auto;
+            background-color: #efeae2;
+        }
+
+        .mensagens li {
+            max-width: 70%;
+            padding: 12px 15px;
+            border-radius: 10px;
+            font-size: 14px;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+        }
+
+        /* Mensagens enviadas por você */
+        .mensagens li.minha {
+            align-self: flex-end;
+            background: #fdd3d3;
+            border-radius: 20px 20px 5px 20px;
+        }
+
+        /* Mensagens recebidas */
+        .mensagens li.outra {
+            align-self: flex-start;
+            background: #ffffff;
+            border-radius: 20px 20px 20px 5px;
+        }
+
+        .chat-form {
+            background: #f0f2f5;
+            padding: 15px 20px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .chat-form input {
+            padding: 14px;
+            border: none;
+            outline: none;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+        }
+
+        #nome {
+            width: 25%;
+        }
+
+        #mensagem {
+            flex: 1;
+        }
+
+        .chat-form button {
+            background: #6d0617;
+            color: white;
+            border: none;
+            padding: 14px 22px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .chat-form button:hover {
+            background: #8c1222;
+        }
+
+        .chat-form input:focus {
+            box-shadow: 0 0 0 2px #d8b5b5;
+        }
+
+        @media (max-width: 600px) {
+            .chat-container {
+                width: 100%;
+                height: 100vh;
+                border-radius: 0;
+            }
+
+            .chat-form {
+                padding: 10px;
+                gap: 6px;
+            }
+
+            #nome {
+                width: 28%;
+            }
+
+            .chat-form input {
+                min-width: 0;
+                padding: 12px 8px;
+                font-size: 12px;
+            }
+
+            .chat-form button {
+                padding: 12px;
+            }
+
+            .mensagens {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <main class="chat-container">
+
+        <header class="chat-header">
+            <h1>Whattsapp</h1>
+            <p>Conectado ao chat em tempo real</p>
+        </header>
+
+        <ul id="mensagens" class="mensagens"></ul>
+
+        <form class="chat-form">
+            <input type="text" id="nome" placeholder="Seu nome" autocomplete="off">
+
+            <input type="text" id="mensagem" placeholder="Digite sua mensagem..." autocomplete="off">
+
+            <button type="submit">Enviar</button>
+        </form>
+
+    </main>
+
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script>
+        const socket = io();
+
+        const nomeInput = document.getElementById('nome');
+        const mensagemInput = document.getElementById('mensagem');
+        const mensagens = document.getElementById('mensagens');
+
+        let nomeUsuario = '';
+
+        document.querySelector('form').addEventListener('submit', event => {
+
+            event.preventDefault();
+
+            const nome = nomeInput.value.trim();
+            const mensagem = mensagemInput.value.trim();
+
+            if (nome && mensagem) {
+
+                nomeUsuario = nome;
+
+                socket.emit('chat message', { nome, mensagem });
+
+                mensagemInput.value = '';
+
+                nomeInput.disabled = true;
+            }
+        });
+
+        socket.on('chat message', dados => {
+
+            const lista = document.createElement('li');
+
+            lista.textContent = `${dados.nome}: ${dados.mensagem}`;
+
+            if (dados.nome === nomeUsuario) {
+                lista.classList.add('minha');
+            } else {
+                lista.classList.add('outra');
+            }
+
+            mensagens.appendChild(lista);
+
+            mensagens.scrollTop = mensagens.scrollHeight;
+        });
+
+    </script>
+
+</body>
+</html>
